@@ -1,4 +1,3 @@
-import React from "react";
 import ImageGalleryItem from "./ImageGalleryItem/ImageGalleryItem";
 import PropTypes from "prop-types";
 
