@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Searchbar from "./components/Searchbar/Searchbar";
 import ImageGallery from "./components/ImageGallery";
 import ServiseApi from "./service/ImageApi";
@@ -16,21 +16,45 @@ function App() {
   const [loader, setLoader] = useState(false);
   const [openModal, setOpenModal] = useState(false);
 
+  useEffect(() => {
+    if (!query) return;
+    const fetchPictures = async () => {
+      loaderToggle();
+      const settings = {
+        query,
+        page,
+        perPage,
+      };
+      return ServiseApi.getImages(settings)
+        .then((hits) => setPictures((prevState) => [...prevState, ...hits]))
+        .finally(() => loaderToggle());
+    };
+
+    fetchPictures();
+  }, [page, query, perPage]);
+
+  const onSubmit = (searchQuery) => {
+    setQuery(searchQuery);
+    setPage(1);
+    setPictures([]);
+  };
+
   const OnLoadMore = () => {
     setPage((prevState) => prevState + 1);
     if (query) {
-      fetchPictures()
-        .then(() => {
-          loaderToggle();
-          if (pictures.length > 10) {
-            window.scrollTo({
-              top: document.documentElement.scrollHeight,
-              behavior: "smooth",
-            });
-          }
-        })
-        .finally(() => loaderToggle());
+      loaderToggle();
+      scrollPage();
+      loaderToggle();
     }
+  };
+
+  const scrollPage = () => {
+    setTimeout(() => {
+      window.scrollBy({
+        top: document.documentElement.clientHeight - 160,
+        behavior: "smooth",
+      });
+    }, 800);
   };
 
   const onImgClick = (e) => {
@@ -44,26 +68,6 @@ function App() {
 
   const loaderToggle = () => {
     setLoader((prevState) => !prevState);
-  };
-
-  const fetchPictures = () => {
-    loaderToggle();
-    const settings = {
-      query,
-      page,
-      perPage,
-    };
-    return ServiseApi.getImages(settings)
-      .then((hits) => setPictures((prevState) => [...prevState, ...hits]))
-      .finally(() => loaderToggle());
-  };
-
-  const onSubmit = (searchQuery) => {
-    setQuery(searchQuery);
-    setPage(1);
-    setPictures([]);
-
-    fetchPictures();
   };
 
   const toggleModal = () => {
